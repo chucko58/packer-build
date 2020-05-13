@@ -30,7 +30,7 @@ The VirtualBox and QEMU versions used for Linux testing are normally the
 * REQUIRED:  Packer_ (Packer_download_)
 
   - 1.5.6 on Debian Buster 10.x (VirtualBox and QEMU)
-  - not currently being tested on macOS but used to work fine
+  - 1.5.6 on macOS 10.14.6
 
 .. _Packer:  https://www.packer.io/
 .. _Packer_download:  https://releases.hashicorp.com/packer/
@@ -38,7 +38,7 @@ The VirtualBox and QEMU versions used for Linux testing are normally the
 * REQUIRED (if not using QEMU):  VirtualBox_ (VirtualBox_download_)
 
   - 6.1.6 r137129 (Qt5.11.3) on Debian Buster 10.x
-  - not currently being tested on macOS but used to work fine
+  - 6.0.10 on macOS 10.14.6
 
 .. _VirtualBox:  https://www.virtualbox.org/
 .. _VirtualBox_download:  http://download.virtualbox.org/virtualbox
@@ -112,6 +112,28 @@ Contents of example file ``variables.json`` used above::
       "version": "1.0.0",
       "vm_name": "test"
     }
+
+
+Using Custom Templates
+----------------------
+
+This fork has been modified to allow use of custom template sources in
+directories other than the installation directory.  The source
+directory must be structured as the packer-build source directory,
+i.e.::
+
+    source/[os_name]/[os_major_release]
+
+and each such subdirectory must contain::
+
+    [template].yaml
+    [template].preseed
+    [template].vagrant
+
+Generate Templates and Build::
+
+    cd my-template-sources
+    [environment_variables] make -f [path_to_packer_build]/Makefile build [make_options_variables_and_or_targets]
 
 
 Using Vagrant Box Files

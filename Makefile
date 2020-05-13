@@ -1,5 +1,11 @@
 SHELL := /usr/bin/env bash
 
+# Presumes GNU make
+# The patsubst strips the trailing / left by dir
+PB_HOME = $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
+# TEMP DEBUG
+# $(info PB_HOME is $(PB_HOME))
+
 BUILD_DIR ?= build
 BUILDER ?= vbox  # vbox or qemu
 BUILD_OPTS ?=  # leave this undefined unless needed
@@ -22,23 +28,23 @@ all: build
 ACTIVATE_SCRIPT = $(VENV_DIR)/bin/activate
 .PHONY: venv
 venv: $(ACTIVATE_SCRIPT)
-$(ACTIVATE_SCRIPT): requirements.txt
+$(ACTIVATE_SCRIPT): $(PB_HOME)/requirements.txt
 	@test -d $(VENV_DIR) || $(PYTHON) -m venv $(VENV_DIR) && \
   source $(ACTIVATE_SCRIPT) && \
-  pip install --upgrade --requirement requirements.txt && \
+  pip install --upgrade --requirement $< && \
   touch $(ACTIVATE_SCRIPT)
 
 .PHONY: venv_upgrade
 venv_upgrade: venv
 	@source $(ACTIVATE_SCRIPT) && \
-  pip install --upgrade --requirement requirements_bare.txt && \
-  pip freeze > requirements.txt && \
+  pip install --upgrade --requirement $(PB_HOME)/requirements_bare.txt && \
+  pip freeze > $(PB_HOME)/requirements.txt && \
   touch $(ACTIVATE_SCRIPT)
 
 # Don't depend on source files, always regenerate templates!!!
 $(TEMPLATE_DIR): venv
 	@source $(ACTIVATE_SCRIPT) && \
-  $(PYTHON) generate_template.py
+  $(PYTHON) $(PB_HOME)/generate_template.py
 
 .PHONY: build
 build: $(TEMPLATE_DIR)

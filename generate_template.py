@@ -25,7 +25,7 @@ def get_os_names():
     '''
     '''
 
-    source_path = path.join(path.dirname(path.abspath(__file__)), 'source')
+    source_path = path.join(path.abspath(getcwd()), 'source')
     os_names = []
     os_names.extend(listdir(source_path))
     return sorted(os_names)
@@ -35,7 +35,7 @@ def get_os_versions(os_name):
     '''
     '''
 
-    os_versions = path.join(path.dirname(path.abspath(__file__)), 'source',
+    os_versions = path.join(path.abspath(getcwd()), 'source',
                             os_name)
     return listdir(os_versions)
 
@@ -44,7 +44,7 @@ def get_os_templates(os_name, os_version):
     '''
     '''
 
-    os_templates = path.join(path.dirname(path.abspath(__file__)), 'source',
+    os_templates = path.join(path.abspath(getcwd()), 'source',
                              os_name, os_version)
     return [path.splitext(file)[0] for file in listdir(os_templates)
             if file.endswith(YAML_EXTENSIONS)]
