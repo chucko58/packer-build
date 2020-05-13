@@ -193,8 +193,8 @@ post-processors:
     >> {{user `output_directory`}}/{{user `vm_name`}}.yaml'
   - 'echo ''    checksum_type: sha256'' >> {{user `output_directory`}}/{{user `vm_name`}}.yaml'
   - 'echo ''    checksum: deadbeef'' >> {{user `output_directory`}}/{{user `vm_name`}}.yaml'
-  - if [ 'vbox' = '{{build_name}}' ]; then sed -i 's/XXXPROVIDER/virtualbox/' '{{user `output_directory`}}/{{user `vm_name`}}.yaml'; fi
-  - if [ 'qemu' = '{{build_name}}' ]; then sed -i 's/XXXPROVIDER/libvirt/' '{{user `output_directory`}}/{{user `vm_name`}}.yaml'; fi
+  - if [ 'vbox' = '{{build_name}}' ]; then sed -i '' 's/XXXPROVIDER/virtualbox/' '{{user `output_directory`}}/{{user `vm_name`}}.yaml'; fi
+  - if [ 'qemu' = '{{build_name}}' ]; then sed -i '' 's/XXXPROVIDER/libvirt/' '{{user `output_directory`}}/{{user `vm_name`}}.yaml'; fi
   only:
   - vbox
   - qemu
