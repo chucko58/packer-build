@@ -1,16 +1,20 @@
 #!/usr/bin/env python
 
-from os import getcwd, listdir, makedirs, path
+from os import getcwd, listdir, makedirs, path, sep
 from json import dumps, load
 from codecs import open as copen
+from glob import glob
+from pathlib import Path
 
 import click
 from ruamel.yaml import YAML
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
-from six import iteritems
 
 
 YAML_EXTENSIONS = ('yml', 'yaml')
+
+# File name endings identifying backup files from editing
+IGNORED_SUFFIXES = ('~', '#')
 
 # Packer is more picky about what keys it allows in templates starting in
 # 1.4.0.  See https://github.com/hashicorp/packer/issues/7544 for details.  The
@@ -21,31 +25,28 @@ PACKER_TEMPLATE_KEYS = ('builders', 'description', 'min_packer_version',
                         'post-processors', 'provisioners', 'variables')
 
 
-def get_os_names():
+def get_os_names(base_dir):
     '''
     '''
 
-    source_path = path.join(path.abspath(getcwd()), 'source')
     os_names = []
-    os_names.extend(listdir(source_path))
+    os_names.extend(listdir(base_dir))
     return sorted(os_names)
 
 
-def get_os_versions(os_name):
+def get_os_versions(base_dir, os_name):
     '''
     '''
 
-    os_versions = path.join(path.abspath(getcwd()), 'source',
-                            os_name)
+    os_versions = path.join(base_dir, os_name)
     return listdir(os_versions)
 
 
-def get_os_templates(os_name, os_version):
+def get_os_templates(base_dir, os_name, os_version):
     '''
     '''
 
-    os_templates = path.join(path.abspath(getcwd()), 'source',
-                             os_name, os_version)
+    os_templates = path.join(base_dir, os_name, os_version)
     return [path.splitext(file)[0] for file in listdir(os_templates)
             if file.endswith(YAML_EXTENSIONS)]
 
@@ -91,8 +92,7 @@ def fail(ctx, msg):
 
 
 def get_base_variables(ctx, base_dir, os_name, os_template, os_version):
-    '''
-    '''
+    '''Reads the template YAML file and returns a dict of its contents'''
 
     template_file = '{}.yaml'.format(os_template)
 
@@ -104,8 +104,7 @@ def get_base_variables(ctx, base_dir, os_name, os_template, os_version):
 
 
 def get_override_variables(var_file):
-    '''
-    '''
+    '''Open the given JSON file and return a dict of its contents'''
 
     with open(var_file, 'r') as f:
         return load(f)
@@ -120,7 +119,7 @@ def build_templates(ctx, base_dir, os_name, os_template, os_version, var_file):
         fail(ctx, 'ERROR Cannot use base_dir of {} as it is not a directory'.format(
             base_dir))
 
-    # Load the desired template variables
+    # Load the desired template's YAML file
     config_dict = get_base_variables(ctx, base_dir, os_name, os_template,
                                      os_version)
 
@@ -145,14 +144,16 @@ def build_templates(ctx, base_dir, os_name, os_template, os_version, var_file):
         makedirs(target_dir)
 
     # Set up the template engine
-    renderer = Environment(loader=FileSystemLoader(path.join(base_dir, os_name,
-                                                             os_version)))
+    source_dir = path.join(base_dir, os_name, os_version)
+    renderer = Environment(loader=FileSystemLoader(source_dir))
 
-    # Render the destination files (assume everything is a template)
-    for file in listdir(path.join(base_dir, os_name, os_version)):
-        if file.endswith(YAML_EXTENSIONS) or path.splitext(file)[0] != os_template:
+    # Render the other destination files with the variables from the YAML file
+    # (assume everything is a template)
+    for template_path in glob(path.join(source_dir, '{}.*'.format(os_template))):
+        if template_path.endswith(YAML_EXTENSIONS) or template_path.endswith(IGNORED_SUFFIXES):
             continue
 
+        file = path.basename(template_path)
         try:
             ginger = renderer.get_template(file)
         except TemplateNotFound:
@@ -205,9 +206,9 @@ def main(ctx, base_dir, os_name, os_template, os_version, var_file, verbose):
     '''
     '''
 
-    for a_name in get_os_names() if os_name == 'all' else [os_name]:
-        for a_version in get_os_versions(a_name) if os_version == 'all' else [os_version]:
-            for a_template in get_os_templates(a_name, a_version) if os_template == 'all' else [os_template]:
+    for a_name in get_os_names(base_dir) if os_name == 'all' else [os_name]:
+        for a_version in get_os_versions(base_dir, a_name) if os_version == 'all' else [os_version]:
+            for a_template in get_os_templates(base_dir, a_name, a_version) if os_template == 'all' else [os_template]:
                 print('Creating {} templates for {} version {}'.format(
                       a_template, a_name, a_version))
                 build_templates(ctx=ctx, base_dir=base_dir, os_name=a_name,
