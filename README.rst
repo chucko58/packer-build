@@ -1,6 +1,11 @@
 packer-build
 ============
 
+This version is a fork of https://github.com/tylert/packer-build,
+customized for use with templates not residing in this source tree,
+and with one example template for building a 32-bit x86 image under
+Debian.
+
 
 What does this do?
 ~~~~~~~~~~~~~~~~~~
@@ -20,12 +25,26 @@ being phased out of Debian/Ubuntu "real soon now".
 What dependencies does this have?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These templates are tested semi-regularly on recent Linux (Debian and/or
-Ubuntu) hosts using recent versions of Packer and Vagrant.  All testing is
-currently done on systems that have amd64/x86_64-family processors.
+These templates are tested semi-regularly on recent macOS (10.14
+Mojave and 10.15 Catalina) and Linux (Debian and/or Ubuntu) hosts
+using recent versions of Packer and Vagrant.  All testing is currently
+done on systems that have amd64/x86_64-family processors.
 
 The VirtualBox and QEMU versions used for Linux testing are normally the
 "stock" ones provided by the official distribution repositories.
+
+* REQUIRED:  GNU Make
+
+  - 3.8.1 (macOS default) or newer
+
+* REQUIRED:  Python 3
+
+  - 3.7 or newer
+
+* REQUIRED:  pip_ (pip_download_)
+
+.. _pip:  https://pip.pypa.io/en/stable/
+.. _pip_download:  https://bootstrap.pypa.io/get-pip.py
 
 * REQUIRED:  Packer_ (Packer_download_)
 
@@ -124,16 +143,12 @@ i.e.::
 
     source/[os_name]/[os_major_release]
 
-and each such subdirectory must contain::
-
-    [template].yaml
-    [template].preseed
-    [template].vagrant
+and each such subdirectory must contain at least *template*.yaml.
 
 Generate Templates and Build::
 
     cd my-template-sources
-    [environment_variables] make -f [path_to_packer_build]/Makefile build [make_options_variables_and_or_targets]
+    [environment_variables] make -f [path_to_packer_build]/Makefile [make_options_variables_and_or_targets]
 
 
 Using Vagrant Box Files
