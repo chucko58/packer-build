@@ -1,21 +1,35 @@
 SHELL := /usr/bin/env bash
 
+# Get the directory containing this Makefile
 # Presumes GNU make
 # The patsubst strips the trailing / left by dir
 PB_HOME = $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
-# TEMP DEBUG
-# $(info PB_HOME is $(PB_HOME))
 
-BUILD_DIR ?= build
-BUILDER ?= vbox  # vbox or qemu
-BUILD_OPTS ?=  # leave this undefined unless needed
+# Options most likely to be changed by user
 OS_NAME ?= debian
 OS_VERSION ?= 10_buster
+TEMPLATE ?= base-uefi
+
+# Less common changes
+BUILDER ?= vbox  # vbox or qemu
+BUILD_OPTS ?=  # leave this undefined unless needed
+
+# Locations
+BUILD_DIR ?= build
 PACKER_CACHE_DIR ?= packer_cache
 PYTHON ?= python3
-TEMPLATE ?= base-uefi
+SOURCE_DIR ?= source
 TEMPLATE_DIR ?= template
-VENV_DIR ?= .venv
+VENV_DIR ?= $(PB_HOME)/.venv
+
+# Convenience variables
+SOURCE_TEMPLATE_DIR = $(SOURCE_DIR)/$(OS_NAME)/$(OS_VERSION)
+TARGET_TEMPLATE_DIR = $(TEMPLATE_DIR)/$(OS_NAME)/$(OS_VERSION)
+
+SOURCE_TEMPLATE = $(SOURCE_TEMPLATE_DIR)/$(TEMPLATE).yaml
+SOURCE_FILES = $(filter-out $(SOURCE_TEMPLATE),$(filter-out %~,$(wildcard $(SOURCE_TEMPLATE_DIR)/$(TEMPLATE).*)))
+TARGET_TEMPLATE = $(TARGET_TEMPLATE_DIR)/$(TEMPLATE).json
+TARGET_FILES = $(patsubst $(SOURCE_DIR)/%,$(TEMPLATE_DIR)/%,$(SOURCE_FILES))
 
 .SUFFIXES:
 .SUFFIXES: .yaml .json .iso .preseed .vagrant .ova .box
@@ -23,34 +37,37 @@ VENV_DIR ?= .venv
 .PRECIOUS: .yaml .preseed .vagrant
 
 .PHONY: all
-all: build
+all: image
 
+# Install Python virtual environment in this directory
 ACTIVATE_SCRIPT = $(VENV_DIR)/bin/activate
-.PHONY: venv
-venv: $(ACTIVATE_SCRIPT)
-$(ACTIVATE_SCRIPT): $(PB_HOME)/requirements.txt
-	@test -d $(VENV_DIR) || $(PYTHON) -m venv $(VENV_DIR) && \
-  source $(ACTIVATE_SCRIPT) && \
-  pip install --upgrade --requirement $< && \
-  touch $(ACTIVATE_SCRIPT)
+$(ACTIVATE_SCRIPT):
+	@$(PYTHON) -m venv $(VENV_DIR)
 
-.PHONY: venv_upgrade
-venv_upgrade: venv
+# Install required Python packages
+requirements: $(PB_HOME)/requirements.txt
+
+$(PB_HOME)/requirements.txt: $(PB_HOME)/requirements_bare.txt $(ACTIVATE_SCRIPT)
 	@source $(ACTIVATE_SCRIPT) && \
-  pip install --upgrade --requirement $(PB_HOME)/requirements_bare.txt && \
-  pip freeze > $(PB_HOME)/requirements.txt && \
-  touch $(ACTIVATE_SCRIPT)
+  pip install --upgrade --requirement $< && \
+  pip freeze > $@
 
-# Don't depend on source files, always regenerate templates!!!
-$(TEMPLATE_DIR): venv
+# Generate the particular template being used
+$(TARGET_TEMPLATE) $(TARGET_FILES): $(SOURCE_TEMPLATE) $(SOURCE_FILES) $(PB_HOME)/requirements.txt
+	@source $(ACTIVATE_SCRIPT) && \
+  $(PYTHON) $(PB_HOME)/generate_template.py --base_dir=$(SOURCE_DIR) --os_name=$(OS_NAME) --os_version=$(OS_VERSION) --os_template=$(TEMPLATE)
+
+# Generate all templates
+.PHONY: all-templates
+all-templates: $(PB_HOME)/requirements.txt
 	@source $(ACTIVATE_SCRIPT) && \
   $(PYTHON) $(PB_HOME)/generate_template.py
 
-.PHONY: build
-build: $(TEMPLATE_DIR)
-	@source $(ACTIVATE_SCRIPT) && \
-  CHECKPOINT_DISABLE=1 PACKER_CACHE_DIR=$(PACKER_CACHE_DIR) \
-  packer build $(BUILD_OPTS) -only=$(BUILDER) -force $(TEMPLATE_DIR)/$(OS_NAME)/$(OS_VERSION)/$(TEMPLATE).json
+# Build the requested image from the templates
+.PHONY: image
+image: $(TARGET_TEMPLATE) $(TARGET_FILES)
+	CHECKPOINT_DISABLE=1 PACKER_CACHE_DIR=$(PACKER_CACHE_DIR) \
+  packer build $(BUILD_OPTS) -only=$(BUILDER) -force $<
 
 # PACKER_CACHE_DIR=packer_cache
 # PACKER_CONFIG="${HOME}/.packerconfig"
