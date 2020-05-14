@@ -1,4 +1,4 @@
-Click
+pip
+click
 Jinja2
 ruamel.yaml
-six
