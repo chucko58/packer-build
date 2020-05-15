@@ -176,26 +176,25 @@ Packer templates can reference **template variables** or **functions**
 related to the Packer execution.  Some common Packer template
 variables are:
 
-. .Name
-. .Vars
-Packer
-. .Path
+- .Name
+- .Vars
+- .Path
 
 Some common Packer template functions are:
 
-. env - Gives access to environment variables
-. build - Gives access to information from provisioners and
+- env - Gives access to environment variables
+- build - Gives access to information from provisioners and
 post-processors
-. isotime - Is replaced by the UTC time, optionally in user defined
+- isotime - Is replaced by the UTC time, optionally in user defined
 format.
-. pwd - Replaced by the path to the current working directory in which
+- pwd - Replaced by the path to the current working directory in which
 Packer runs.
-. template_dir - Directory containing the Packer template.
-. timestamp - Unix timestamp in UTC at time Packer was launched.
-. user - References a **user variable** in the ``variables`` section of the
+- template_dir - Directory containing the Packer template.
+- timestamp - Unix timestamp in UTC at time Packer was launched.
+- user - References a **user variable** in the ``variables`` section of the
 Packer template.
 
-See Packer_Template_Engine_Documentation_ for the details.
+See Packer_Template_Engine_ for the details.
 
 .. _Jinja2_Template_Designer_Documentation: https://jinja.palletsprojects.com/en/2.11.x/templates/
 .. _Packer_Template_Engine: https://www.packer.io/docs/templates/engine/
