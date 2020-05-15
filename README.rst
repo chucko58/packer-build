@@ -101,6 +101,7 @@ It may be possible to correct this error by installing the
 TODO Items
 ~~~~~~~~~~
 
+* Automate discovery/integration of new OS point releases
 * [DRY phase3] Wait until HCL2 stops sucking and convert everything from YAML to HCL2
 * [preseed debian] Find out if partman-crypto will allow passphrase-crypted
 * [preseed debian] Skip past "Force UEFI Install" installer prompt
@@ -149,6 +150,55 @@ Generate Templates and Build::
 
     cd my-template-sources
     [environment_variables] make -f [path_to_packer_build]/Makefile [make_options_variables_and_or_targets]
+
+
+Template Processing
+-------------------
+
+The YAML template file is read in first.  Its ``variables`` section is
+used to generate a dictionary.
+
+If an override dictionary (JSON) file is provided to packer-build, its
+settings are used to update and/or extend the variables dictionary,
+and will override those in the YAML file.
+
+All templates other than the YAML file are then processed by Jinja2,
+using the bindings in the variables dictionary.  See
+Jinja2_Template_Designer_Documentation_ for the substitution syntax.
+
+Finally, the Packer template is generated from the data in the YAML
+file.  Crucially, the Packer template is not processed by Jinja2, but
+by the Packer_Template_Engine_.  The ``variables`` section from the
+YAML file, as amended by the override dictionary, is reformatted as
+JSON and included in the output template.
+
+Packer templates can reference **template variables** or **functions**
+related to the Packer execution.  Some common Packer template
+variables are:
+
+. .Name
+. .Vars
+Packer
+. .Path
+
+Some common Packer template functions are:
+
+. env - Gives access to environment variables
+. build - Gives access to information from provisioners and
+post-processors
+. isotime - Is replaced by the UTC time, optionally in user defined
+format.
+. pwd - Replaced by the path to the current working directory in which
+Packer runs.
+. template_dir - Directory containing the Packer template.
+. timestamp - Unix timestamp in UTC at time Packer was launched.
+. user - References a **user variable** in the ``variables`` section of the
+Packer template.
+
+See Packer_Template_Engine_Documentation_ for the details.
+
+.. _Jinja2_Template_Designer_Documentation: https://jinja.palletsprojects.com/en/2.11.x/templates/
+.. _Packer_Template_Engine: https://www.packer.io/docs/templates/engine/
 
 
 Using Vagrant Box Files
