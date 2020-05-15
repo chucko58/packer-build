@@ -183,16 +183,12 @@ variables are:
 Some common Packer template functions are:
 
 - env - Gives access to environment variables
-- build - Gives access to information from provisioners and
-post-processors
-- isotime - Is replaced by the UTC time, optionally in user defined
-format.
-- pwd - Replaced by the path to the current working directory in which
-Packer runs.
+- build - Gives access to information from provisioners and post-processors
+- isotime - Is replaced by the UTC time, optionally in user defined format.
+- pwd - Replaced by the path to the current working directory in which Packer runs.
 - template_dir - Directory containing the Packer template.
 - timestamp - Unix timestamp in UTC at time Packer was launched.
-- user - References a **user variable** in the ``variables`` section of the
-Packer template.
+- user - References a **user variable** in the ``variables`` section of the Packer template.
 
 See Packer_Template_Engine_ for the details.
 
