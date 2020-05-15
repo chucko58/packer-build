@@ -53,6 +53,7 @@ $(PB_HOME)/requirements.txt: $(PB_HOME)/requirements_bare.txt $(ACTIVATE_SCRIPT)
   pip freeze > $@
 
 # Generate the particular template being used
+image-template: $(TARGET_TEMPLATE)
 $(TARGET_TEMPLATE) $(TARGET_FILES): $(SOURCE_TEMPLATE) $(SOURCE_FILES) $(PB_HOME)/requirements.txt
 	@source $(ACTIVATE_SCRIPT) && \
   $(PYTHON) $(PB_HOME)/generate_template.py --base_dir=$(SOURCE_DIR) --os_name=$(OS_NAME) --os_version=$(OS_VERSION) --os_template=$(TEMPLATE)
