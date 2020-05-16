@@ -155,15 +155,23 @@ Generate Templates and Build::
 Template Processing
 -------------------
 
+Templates are processed by the Python script ``generate_template.py``
+in this directory.
+
 The YAML template file is read in first.  Its ``variables`` section is
 used to generate a dictionary.
 
-If an override dictionary (JSON) file is provided to packer-build, its
-settings are used to update and/or extend the variables dictionary,
-and will override those in the YAML file.
+If a variable override file (JSON) is provided to packer-build at
+template generation time, by specifying ``VAR_FILE=filename`` on the
+``make`` command line, its settings are used to update and/or extend
+the variables dictionary, and will override those in the YAML file.
 
-All templates other than the YAML file are then processed by Jinja2,
-using the bindings in the variables dictionary.  See
+(Note that a variable override file can also be given to Packer at
+image build time, by specifying ``BUILD_OPTS='--var_file=filename'`` on
+the ``make`` command line.)
+
+All template files other than the YAML file are then processed by
+Jinja2, using the bindings in the variables dictionary.  See
 Jinja2_Template_Designer_Documentation_ for the substitution syntax.
 
 Finally, the Packer template is generated from the data in the YAML
@@ -176,19 +184,37 @@ Packer templates can reference **template variables** or **functions**
 related to the Packer execution.  Some common Packer template
 variables are:
 
-- .Name
-- .Vars
-- .Path
+- ``{{ .Name }}``
+- ``{{ .Vars }}``
+- ``{{ .Path }}``
 
-Some common Packer template functions are:
+Packer template functions include information queries:
 
-- env - Gives access to environment variables
-- build - Gives access to information from provisioners and post-processors
-- isotime - Is replaced by the UTC time, optionally in user defined format.
-- pwd - Replaced by the path to the current working directory in which Packer runs.
-- template_dir - Directory containing the Packer template.
-- timestamp - Unix timestamp in UTC at time Packer was launched.
-- user - References a **user variable** in the ``variables`` section of the Packer template.
+- ``{{ build \`build_var\` }}`` - Gives access to information from provisioners and post-processors
+- ``{{ build_name }}`` - Name of this build
+- ``{{ build_type }}`` - The build type
+- ``{{ env \`VARIABLE_NAME\` }}`` - Get value of host environment variable
+- ``{{ packer_version }}`` - Self-explanatory
+- ``{{ pwd }}`` - Host directory in which Packer was started
+- ``{{ template_dir }}`` - Host directory containing the Packer template
+
+Time functions return the time at which Packer was launched, in several formats:
+ 
+- ``{{ isotime [\\"format\\"] }}`` - Time, optionally in user defined format.
+- ``{{ strftime \\"format\\" }}`` - As formatted by the C ``strftime()`` function.
+- ``{{ timestamp }}`` - Unix format timestamp
+
+String processing:
+
+- ``{{ lower string }}`` - Change string to lower case
+- ``{{ upper string }}`` - Change string to upper case
+- ``{{ replace oldpat, newpat, ntimes, string }}``
+- ``{{ replace_all oldpat, newpat, string }}``
+- ``{{ uuid }}`` - Returns a randomly generated UUID
+
+Access to user variables:
+
+- ``{{ user \`variable_name\` }}`` - References a **user variable** in the ``variables`` section of the Packer template
 
 See Packer_Template_Engine_ for the details.
 
