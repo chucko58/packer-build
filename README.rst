@@ -190,18 +190,18 @@ variables are:
 
 Packer template functions include information queries:
 
-- ``{{ build \`build_var\` }}`` - Gives access to information from provisioners and post-processors
+- ``{{ build `build_var` }}`` - Gives access to information from provisioners and post-processors
 - ``{{ build_name }}`` - Name of this build
 - ``{{ build_type }}`` - The build type
-- ``{{ env \`VARIABLE_NAME\` }}`` - Get value of host environment variable
+- ``{{ env `VARIABLE_NAME` }}`` - Get value of host environment variable
 - ``{{ packer_version }}`` - Self-explanatory
 - ``{{ pwd }}`` - Host directory in which Packer was started
 - ``{{ template_dir }}`` - Host directory containing the Packer template
 
 Time functions return the time at which Packer was launched, in several formats:
  
-- ``{{ isotime [\\"format\\"] }}`` - Time, optionally in user defined format.
-- ``{{ strftime \\"format\\" }}`` - As formatted by the C ``strftime()`` function.
+- ``{{ isotime ["format"] }}`` - Time, optionally in user defined format.
+- ``{{ strftime "format" }}`` - As formatted by the C ``strftime()`` function.
 - ``{{ timestamp }}`` - Unix format timestamp
 
 String processing:
@@ -214,7 +214,7 @@ String processing:
 
 Access to user variables:
 
-- ``{{ user \`variable_name\` }}`` - References a **user variable** in the ``variables`` section of the Packer template
+- ``{{ user `variable_name` }}`` - References a **user variable** in the ``variables`` section of the Packer template
 
 See Packer_Template_Engine_ for the details.
 
