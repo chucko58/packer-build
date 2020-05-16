@@ -234,7 +234,7 @@ provisioners:
 variables:
   apt_cache_url: http://myserver:3142
   aws_ami_name: 'base-{{isotime "2006-01-02-15-04-05"}}'
-  aws_region: ca-central-1
+  aws_region: us-west-1
   aws_s3_bucket_name: packer-bucket
   aws_s3_key_name: packer-import-{{timestamp}}
   aws_skip_clean: 'false'
@@ -262,10 +262,10 @@ variables:
   locale: en_US.UTF-8
   memory: '768'
   min_vagrant_version: 2.2.9
-  mirror: ftp.us.debian.org
+  mirror: http.us.debian.org
   output_directory: 'build/{{isotime "2006-01-02-15-04-05"}}'
   packer_cache_dir: '{{env `PACKER_CACHE_DIR`}}'
-  preseed_file: template/debian/10_buster/base.preseed
+  preseed_file: template/debian/10_buster/base-i386.preseed
   qemu_binary: qemu-system-x86
   shutdown_timeout: 5m
   ssh_agent_auth: 'false'
@@ -284,9 +284,9 @@ variables:
   start_retry_timeout: 5m
   system_clock_in_utc: 'true'
   timezone: UTC
-  vagrantfile_template: template/debian/10_buster/base.vagrant
+  vagrantfile_template: template/debian/10_buster/base-i386.vagrant
   version: 0.0.0
-  vm_name: base-buster
+  vm_name: base-i386-buster
   vnc_vrdp_bind_address: 127.0.0.1
   vnc_vrdp_port_max: '6000'
   vnc_vrdp_port_min: '5900'
