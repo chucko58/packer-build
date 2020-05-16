@@ -9,6 +9,7 @@ PB_HOME = $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 OS_NAME ?= debian
 OS_VERSION ?= 10_buster
 TEMPLATE ?= base-uefi
+VAR_FILE ?=
 
 # Less common changes
 BUILDER ?= vbox  # vbox or qemu
@@ -30,6 +31,11 @@ SOURCE_TEMPLATE = $(SOURCE_TEMPLATE_DIR)/$(TEMPLATE).yaml
 SOURCE_FILES = $(filter-out $(SOURCE_TEMPLATE),$(filter-out %~,$(wildcard $(SOURCE_TEMPLATE_DIR)/$(TEMPLATE).*)))
 TARGET_TEMPLATE = $(TARGET_TEMPLATE_DIR)/$(TEMPLATE).json
 TARGET_FILES = $(patsubst $(SOURCE_DIR)/%,$(TEMPLATE_DIR)/%,$(SOURCE_FILES))
+
+# Used to mark a particular combination of inputs
+STAMP = $(TARGET_TEMPLATE_DIR)/.$(subst /,__,$(VAR_FILE))-$(TEMPLATE)
+TEMPLATE_STAMPS = $(wildcard $(TARGET_TEMPLATE_DIR)/.*-$(TEMPLATE))
+OTHER_STAMPS = $(filter-out $(STAMP),$(TEMPLATE_STAMPS))
 
 .SUFFIXES:
 .SUFFIXES: .yaml .json .iso .preseed .vagrant .ova .box
@@ -53,10 +59,11 @@ $(PB_HOME)/requirements.txt: $(PB_HOME)/requirements_bare.txt $(ACTIVATE_SCRIPT)
   pip freeze > $@
 
 # Generate the particular template being used
-image-template: $(TARGET_TEMPLATE)
-$(TARGET_TEMPLATE) $(TARGET_FILES): $(SOURCE_TEMPLATE) $(SOURCE_FILES) $(PB_HOME)/requirements.txt
+image-template: $(STAMP)
+$(TARGET_TEMPLATE) $(TARGET_FILES) $(STAMP): $(SOURCE_TEMPLATE) $(SOURCE_FILES) $(VAR_FILE) $(OTHER_STAMPS) $(PB_HOME)/requirements.txt
 	@source $(ACTIVATE_SCRIPT) && \
-  $(PYTHON) $(PB_HOME)/generate_template.py --base_dir=$(SOURCE_DIR) --os_name=$(OS_NAME) --os_version=$(OS_VERSION) --os_template=$(TEMPLATE)
+  $(PYTHON) $(PB_HOME)/generate_template.py --base_dir=$(SOURCE_DIR) --os_name=$(OS_NAME) --os_version=$(OS_VERSION) --os_template=$(TEMPLATE) --var_file=$(VAR_FILE)
+	@touch $(STAMP)
 
 # Generate all templates
 .PHONY: all-templates
@@ -66,7 +73,7 @@ all-templates: $(PB_HOME)/requirements.txt
 
 # Build the requested image from the templates
 .PHONY: image
-image: $(TARGET_TEMPLATE) $(TARGET_FILES)
+image: $(TARGET_TEMPLATE) $(TARGET_FILES) $(STAMP)
 	CHECKPOINT_DISABLE=1 PACKER_CACHE_DIR=$(PACKER_CACHE_DIR) \
   packer build $(BUILD_OPTS) -only=$(BUILDER) -force $<
 
