@@ -37,9 +37,9 @@ The VirtualBox and QEMU versions used for Linux testing are normally the
 
   - 3.8.1 (macOS default) or newer
 
-* REQUIRED:  Python 3
+* REQUIRED:  Python
 
-  - 3.7 or newer
+  - Tested on macOS with Python 2.7 and 3.8
 
 * REQUIRED:  pip_ (pip_download_)
 
@@ -117,7 +117,7 @@ Generate Templates and Build::
 Examples::
 
     make OS_NAME=debian OS_VERSION=11_bullseye
-    make OS_NAME=ubuntu OS_VERSION=20.04_focal
+    make OS_NAME=ubuntu OS_VERSION=20.04_focal VAR_FILE=variables.json
     make BUILDER=vbox
     make BUILDER=qemu
     make BUILD_OPTS='-var=headless=true -var=version=1.0.0 -var=vm_name=test'
@@ -149,7 +149,7 @@ and each such subdirectory must contain at least *template*.yaml.
 Generate Templates and Build::
 
     cd my-template-sources
-    [environment_variables] make -f [path_to_packer_build]/Makefile [make_options_variables_and_or_targets]
+    [environment_variables] make -f path_to_packer_build/Makefile [make_options_variables_and_or_targets]
 
 
 Template Processing
@@ -396,9 +396,8 @@ Hex Result::
 Serving Local Files via HTTP
 ----------------------------
 
-::
-
-    ./script/sow.py
+An earlier version of this package included a simple Python HTTP
+server script.  It was removed for security reasons.
 
 
 Caching Debian/Ubuntu Packages

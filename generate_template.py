@@ -4,7 +4,6 @@ from os import getcwd, listdir, makedirs, path, sep
 from json import dumps, load
 from codecs import open as copen
 from glob import glob
-from pathlib import Path
 
 import click
 from ruamel.yaml import YAML
