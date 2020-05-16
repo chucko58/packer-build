@@ -94,7 +94,8 @@ clean:
 
 .PHONY: reallyclean
 reallyclean: clean
-	@rm -rf $(VENV_DIR)
+	@rm -rf $(VENV_DIR) && \
+  rm -f $(PB_HOME)/requirements.txt
 
 .PHONY: reallyreallyclean
 reallyreallyclean: reallyclean
