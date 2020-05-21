@@ -28,9 +28,7 @@ SOURCE_TEMPLATE_DIR = $(SOURCE_DIR)/$(OS_NAME)/$(OS_VERSION)
 TARGET_TEMPLATE_DIR = $(TEMPLATE_DIR)/$(OS_NAME)/$(OS_VERSION)
 
 SOURCE_TEMPLATE = $(SOURCE_TEMPLATE_DIR)/$(TEMPLATE).yaml
-SOURCE_FILES = $(filter-out $(SOURCE_TEMPLATE),$(filter-out %~,$(wildcard $(SOURCE_TEMPLATE_DIR)/$(TEMPLATE).*)))
 TARGET_TEMPLATE = $(TARGET_TEMPLATE_DIR)/$(TEMPLATE).json
-TARGET_FILES = $(patsubst $(SOURCE_DIR)/%,$(TEMPLATE_DIR)/%,$(SOURCE_FILES))
 
 # Used to mark a particular combination of inputs
 STAMP = $(TARGET_TEMPLATE_DIR)/.$(subst /,__,$(VAR_FILE))-$(TEMPLATE)
@@ -60,9 +58,9 @@ $(PB_HOME)/requirements.txt: $(PB_HOME)/requirements_bare.txt $(ACTIVATE_SCRIPT)
 
 # Generate the particular template being used
 image-template: $(STAMP)
-$(TARGET_TEMPLATE) $(TARGET_FILES) $(STAMP): $(SOURCE_TEMPLATE) $(SOURCE_FILES) $(VAR_FILE) $(OTHER_STAMPS) $(PB_HOME)/requirements.txt
+$(TARGET_TEMPLATE) $(STAMP): $(SOURCE_TEMPLATE) $(VAR_FILE) $(OTHER_STAMPS) $(PB_HOME)/requirements.txt
 	@source $(ACTIVATE_SCRIPT) && \
-  $(PYTHON) $(PB_HOME)/generate_template.py --base_dir=$(SOURCE_DIR) --os_name=$(OS_NAME) --os_version=$(OS_VERSION) --os_template=$(TEMPLATE) --var_file=$(VAR_FILE)
+  $(PYTHON) $(PB_HOME)/generate_template.py --base_dir=$(SOURCE_DIR) --os_name=$(OS_NAME) --os_version=$(OS_VERSION) --os_template=$(TEMPLATE) --var_file=$(VAR_FILE) --verbose
 	@touch $(STAMP)
 
 # Generate all templates
@@ -73,7 +71,7 @@ all-templates: $(PB_HOME)/requirements.txt
 
 # Build the requested image from the templates
 .PHONY: image
-image: $(TARGET_TEMPLATE) $(TARGET_FILES) $(STAMP)
+image: $(TARGET_TEMPLATE) $(STAMP)
 	CHECKPOINT_DISABLE=1 PACKER_CACHE_DIR=$(PACKER_CACHE_DIR) \
   packer build $(BUILD_OPTS) -only=$(BUILDER) -force $<
 
