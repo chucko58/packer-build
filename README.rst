@@ -101,7 +101,6 @@ It may be possible to correct this error by installing the
 TODO Items
 ~~~~~~~~~~
 
-* Automate discovery/integration of new OS point releases
 * [DRY phase3] Wait until HCL2 stops sucking and convert everything from YAML to HCL2
 * [preseed debian] Find out if partman-crypto will allow passphrase-crypted
 * [preseed debian] Skip past "Force UEFI Install" installer prompt
@@ -146,6 +145,11 @@ i.e.::
 
 and each such subdirectory must contain at least *template*.yaml.
 
+Generate Templates::
+
+    cd my-template-sources
+    [environment_variables] make -f path_to_packer_build/Makefile [make_options_variables] image-template
+
 Generate Templates and Build::
 
     cd my-template-sources
@@ -159,16 +163,38 @@ Templates are processed by the Python script ``generate_template.py``
 in this directory.
 
 The YAML template file is read in first.  Its ``variables`` section is
-used to generate a dictionary.
+used to generate a dictionary of **user variables**.
 
 If a variable override file (JSON) is provided to packer-build at
 template generation time, by specifying ``VAR_FILE=filename`` on the
 ``make`` command line, its settings are used to update and/or extend
-the variables dictionary, and will override those in the YAML file.
+the user variables dictionary, and will override those in the YAML
+file.
 
-(Note that a variable override file can also be given to Packer at
-image build time, by specifying ``BUILD_OPTS='--var_file=filename'`` on
-the ``make`` command line.)
+(Note that a JSON variable override file can also be given to Packer
+at image build time, by specifying
+``BUILD_OPTS='--var_file=filename'`` on the ``make`` command line.
+This will override the user variable bindings passed in the YAML
+file.)
+
+If the ``variables`` dictionary contains the special key
+``pb_templates``, the template generator will process those files.
+Names are relative to the directory containing the YAML file.  This
+allows a number of builds of the same OS release to share common
+files.  See ``source/debian/10_buster/base.yaml`` for an example.
+
+Otherwise any files in the same directory as the YAML file with the
+same basename are processed.  E.g. ``my_template.yaml`` will cause to
+be processed all files in the same directory which match
+``my_template.*``.
+
+The template generator sets two user variables: ``pb_source_dir`` is
+the path of the directory containing the YAML file, relative to the
+working directory from which ``make`` was invoked, and
+``pb_template_dir`` is likewise the relative path of the output
+directory.  The latter is useful for constructing the names of the
+files Packer uses, e.g. the ``preseed_file`` and the
+``vagrantfile_template``.
 
 All template files other than the YAML file are then processed by
 Jinja2, using the bindings in the variables dictionary.  See
@@ -180,43 +206,16 @@ by the Packer_Template_Engine_.  The ``variables`` section from the
 YAML file, as amended by the override dictionary, is reformatted as
 JSON and included in the output template.
 
-Packer templates can reference **template variables** or **functions**
-related to the Packer execution.  Some common Packer template
-variables are:
+In addition to user variables, Packer templates can reference
+**template variables** or **functions** related to the Packer
+execution.  See Packer_Template_Engine_ for the details.
 
-- ``{{ .Name }}``
-- ``{{ .Vars }}``
-- ``{{ .Path }}``
+Beware the different formats for user variable references!
 
-Packer template functions include information queries:
+- Files processed by **Jinja2** access user variables as ``{{variable_name}}``.
 
-- ``{{ build `build_var` }}`` - Gives access to information from provisioners and post-processors
-- ``{{ build_name }}`` - Name of this build
-- ``{{ build_type }}`` - The build type
-- ``{{ env `VARIABLE_NAME` }}`` - Get value of host environment variable
-- ``{{ packer_version }}`` - Self-explanatory
-- ``{{ pwd }}`` - Host directory in which Packer was started
-- ``{{ template_dir }}`` - Host directory containing the Packer template
+- **Packer** templates access user variables as ``{{ user `variable_name` }}``.
 
-Time functions return the time at which Packer was launched, in several formats:
- 
-- ``{{ isotime ["format"] }}`` - Time, optionally in user defined format.
-- ``{{ strftime "format" }}`` - As formatted by the C ``strftime()`` function.
-- ``{{ timestamp }}`` - Unix format timestamp
-
-String processing:
-
-- ``{{ lower string }}`` - Change string to lower case
-- ``{{ upper string }}`` - Change string to upper case
-- ``{{ replace oldpat, newpat, ntimes, string }}``
-- ``{{ replace_all oldpat, newpat, string }}``
-- ``{{ uuid }}`` - Returns a randomly generated UUID
-
-Access to user variables:
-
-- ``{{ user `variable_name` }}`` - References a **user variable** in the ``variables`` section of the Packer template
-
-See Packer_Template_Engine_ for the details.
 
 .. _Jinja2_Template_Designer_Documentation: https://jinja.palletsprojects.com/en/2.11.x/templates/
 .. _Packer_Template_Engine: https://www.packer.io/docs/templates/engine/
