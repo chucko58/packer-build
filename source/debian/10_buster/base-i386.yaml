@@ -89,10 +89,10 @@ builders:
 - <<: [*builder_common_options, *communicator_ssh_options]
 # export_opts: [](string)
   format: ova
-  guest_additions_mode: disable
-# guest_additions_path: (string)
-# guest_additions_sha256: (string)
-# guest_additions_url: (string)
+  guest_additions_mode: '{{user `guest_additions_mode`}}'
+  guest_additions_path: '{{user `guest_additions_path`}}'
+# guest_additions_sha256: '{{user `guest_additions_sha256`}}'
+# guest_additions_url: '{{user `guest_additions_url`}}'
   guest_os_type: '{{user `guest_os_type`}}'
   hard_drive_discard: false
   hard_drive_interface: sata
@@ -117,7 +117,37 @@ builders:
       {{- else -}}
       off
       {{- end}}
-# vboxmanage_post: [][](string)
+  vboxmanage_post:
+  #
+  # Enable bidi clipboard share and drag & drop
+  #
+  - - modifyvm
+    - '{{.Name}}'
+    - '--clipboard'
+    - 'bidirectional'
+    - '--draganddrop'
+    - 'bidirectional'
+  #
+  # Uncomment this section for images with X Window System or Wayland server
+  #
+  # Enable bidi drag & drop
+  #
+  # - - modifyvm
+  #   - '{{.Name}}'
+  #   - '--draganddrop'
+  #   - 'bidirectional'
+  #
+  # Set up video interface for GUI
+  #
+  # - - modifyvm
+  #   - '{{.Name}}'
+  #   - '--graphicscontroller'
+  #   - 'vmsvga'
+  #   - '--vram'
+  #   - '32'
+  #   - '--accelerate3d'
+  #   - 'on'
+  #
   virtualbox_version_file: '/tmp/.vbox_version'
   vrdp_bind_address: '{{user `vnc_vrdp_bind_address`}}'
   vrdp_port_max: '{{user `vnc_vrdp_port_max`}}'
@@ -218,6 +248,22 @@ provisioners:
   only:
   - vbox
   - qemu
+# Install VBox Guest Additions
+# Must remove the current vboxguest module before we build the new one
+- <<: *provisioner_shell_options
+  inline:
+  - mkdir /mnt/vbox_iso
+  - mount -o loop,ro {{user `guest_additions_path`}} /mnt/vbox_iso
+  - cd /mnt/vbox_iso
+  - modprobe -r vboxguest
+  - sh ./VBoxLinuxAdditions.run
+  - cd /home/{{user `ssh_username`}}
+  - umount -d /mnt/vbox_iso
+  - rm -f {{user `guest_additions_path`}}
+  - usermod {{user `ssh_username`}} -a -G vboxsf
+  only:
+  - vbox
+  - qemu
 - <<: *provisioner_shell_options
   inline:
   - dd if=/dev/zero of=/ZEROFILL bs=16M || true
@@ -242,10 +288,13 @@ variables:
   communicator: ssh
   country: US
   cpus: '1'
-  description: 'Base box for x86 Debian Buster 10.x'
+  description: 'Base box for 32-bit x86 Debian Buster 10.x'
   disk_size: '7500'
   domain: ''
-  guest_os_type: Debian_32
+  guest_additions_mode: 'upload'
+#  Place to store uploaded ISO file
+  guest_additions_path: '/home/{{user `ssh_username`}}/vbox_iso'
+  guest_os_type: Debian
   headless: 'false'
   http_directory: '.'
   http_port_max: '9000'
@@ -263,9 +312,12 @@ variables:
   memory: '768'
   min_vagrant_version: 2.2.9
   mirror: http.us.debian.org
-  output_directory: 'build/{{isotime "2006-01-02-15-04-05"}}'
+  output_directory: 'build/{{user `vm_name`}}-{{isotime "2006-01-02-15-04-05"}}'
   packer_cache_dir: '{{env `PACKER_CACHE_DIR`}}'
-  preseed_file: template/debian/10_buster/base-i386.preseed
+  pb_templates:
+  - base-i386.preseed
+  - common.vagrant
+  preseed_file: '{{user `pb_template_dir`}}/base-i386.preseed'
   qemu_binary: qemu-system-x86
   shutdown_timeout: 5m
   ssh_agent_auth: 'false'
@@ -284,7 +336,7 @@ variables:
   start_retry_timeout: 5m
   system_clock_in_utc: 'true'
   timezone: UTC
-  vagrantfile_template: template/debian/10_buster/base-i386.vagrant
+  vagrantfile_template: '{{user `pb_template_dir`}}/common.vagrant'
   version: 0.0.0
   vm_name: base-i386-buster
   vnc_vrdp_bind_address: 127.0.0.1

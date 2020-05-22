@@ -43,8 +43,9 @@ d-i mirror/http/proxy string
 # d-i mirror/http/proxy string {{apt_cache_url}}
 d-i apt-setup/contrib boolean true
 d-i apt-setup/non-free boolean true
-tasksel tasksel/first multiselect print-server, ssh-server, standard
-d-i pkgsel/include string sudo, unattended-upgrades
+tasksel tasksel/first multiselect ssh-server, standard
+# linux-headers-686, make, perl necessary to build VirtualBox guest additions
+d-i pkgsel/include string sudo, unattended-upgrades, linux-headers-686-pae, make, perl
 popularity-contest popularity-contest/participate boolean false
 
 # Drive Setup
