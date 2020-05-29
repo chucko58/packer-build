@@ -30,11 +30,6 @@ TARGET_TEMPLATE_DIR = $(TEMPLATE_DIR)/$(OS_NAME)/$(OS_VERSION)
 SOURCE_TEMPLATE = $(SOURCE_TEMPLATE_DIR)/$(TEMPLATE).yaml
 TARGET_TEMPLATE = $(TARGET_TEMPLATE_DIR)/$(TEMPLATE).json
 
-# Used to mark a particular combination of inputs
-STAMP = $(TARGET_TEMPLATE_DIR)/.$(subst /,__,$(VAR_FILE))-$(TEMPLATE)
-TEMPLATE_STAMPS = $(wildcard $(TARGET_TEMPLATE_DIR)/.*-$(TEMPLATE))
-OTHER_STAMPS = $(filter-out $(STAMP),$(TEMPLATE_STAMPS))
-
 .SUFFIXES:
 .SUFFIXES: .yaml .json .iso .preseed .vagrant .ova .box
 
@@ -56,12 +51,11 @@ $(PB_HOME)/requirements.txt: $(PB_HOME)/requirements_bare.txt $(ACTIVATE_SCRIPT)
   pip install --upgrade --requirement $< && \
   pip freeze > $@
 
-# Generate the particular template being used
-image-template: $(STAMP)
-$(TARGET_TEMPLATE) $(STAMP): $(SOURCE_TEMPLATE) $(VAR_FILE) $(OTHER_STAMPS) $(PB_HOME)/requirements.txt
+# Always regenerate the particular template being used
+.PHONY: image-template
+image-template $(TARGET_TEMPLATE): $(SOURCE_TEMPLATE) $(VAR_FILE) $(PB_HOME)/requirements.txt
 	@source $(ACTIVATE_SCRIPT) && \
   $(PYTHON) $(PB_HOME)/generate_template.py --base_dir=$(SOURCE_DIR) --os_name=$(OS_NAME) --os_version=$(OS_VERSION) --os_template=$(TEMPLATE) --var_file=$(VAR_FILE) --verbose
-	@touch $(STAMP)
 
 # Generate all templates
 .PHONY: all-templates
@@ -71,9 +65,19 @@ all-templates: $(PB_HOME)/requirements.txt
 
 # Build the requested image from the templates
 .PHONY: image
-image: $(TARGET_TEMPLATE) $(STAMP)
+image: $(TARGET_TEMPLATE) image-template
 	CHECKPOINT_DISABLE=1 PACKER_CACHE_DIR=$(PACKER_CACHE_DIR) \
   packer build $(BUILD_OPTS) -only=$(BUILDER) -force $<
+
+.PHONY: inspect
+inspect: $(TARGET_TEMPLATE) image-template
+	CHECKPOINT_DISABLE=1 PACKER_CACHE_DIR=$(PACKER_CACHE_DIR) \
+  packer inspect $(BUILD_OPTS) $<
+
+.PHONY: validate
+validate: $(TARGET_TEMPLATE) image-template
+	CHECKPOINT_DISABLE=1 PACKER_CACHE_DIR=$(PACKER_CACHE_DIR) \
+  packer validate $(BUILD_OPTS) $<
 
 # PACKER_CACHE_DIR=packer_cache
 # PACKER_CONFIG="${HOME}/.packerconfig"
