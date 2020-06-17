@@ -49,15 +49,16 @@ The VirtualBox and QEMU versions used for Linux testing are normally the
 * REQUIRED:  Packer_ (Packer_download_)
 
   - 1.5.6 on Debian Buster 10.x (VirtualBox and QEMU)
-  - 1.5.6 on macOS 10.14.6
+  - 1.6.0 on Ubuntu Focal 20.04 (VirtualBox)
+  - 1.5.6 and 1.6.0 on macOS 10.14.6 (VirtualBox)
 
 .. _Packer:  https://www.packer.io/
 .. _Packer_download:  https://releases.hashicorp.com/packer/
 
 * REQUIRED (if not using QEMU):  VirtualBox_ (VirtualBox_download_)
 
-  - 6.1.6 r137129 (Qt5.11.3) on Debian Buster 10.x
-  - 6.0.10 on macOS 10.14.6
+  - 6.1.6 r137129 (Qt5.11.3) on Debian Buster 10.x and Ubuntu Focal 20.04
+  - 6.0.10 and 6.1.8 on macOS 10.14.6
 
 .. _VirtualBox:  https://www.virtualbox.org/
 .. _VirtualBox_download:  http://download.virtualbox.org/virtualbox
@@ -104,7 +105,7 @@ TODO Items
 * [DRY phase3] Wait until HCL2 stops sucking and convert everything from YAML to HCL2
 * [preseed debian] Find out if partman-crypto will allow passphrase-crypted
 * [preseed debian] Skip past "Force UEFI Install" installer prompt
-
+* [yaml all] Update YAML files to Packer 1.6.0 format
 
 Using Packer Templates
 ----------------------
@@ -178,10 +179,11 @@ This will override the user variable bindings passed in the YAML
 file.)
 
 If the ``variables`` dictionary contains the special key
-``pb_templates``, the template generator will process those files.
-Names are relative to the directory containing the YAML file.  This
-allows a number of builds of the same OS release to share common
-files.  See ``source/debian/10_buster/base.yaml`` for an example.
+``pb_templates``, the template generator will process only those
+files.  Names are relative to the directory containing the YAML file.
+This allows a number of builds of the same OS release to share common
+files.  See ``source/debian/10_buster/base.yaml`` or
+``source/ubuntu/18.04_bionic/base-uefi.yaml`` as examples.
 
 Otherwise any files in the same directory as the YAML file with the
 same basename are processed.  E.g. ``my_template.yaml`` will cause to
