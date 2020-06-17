@@ -26,15 +26,13 @@ _anchors:
   communicator: '{{user `communicator`}}'
   cpus: '{{user `cpus`}}'
   disk_size: '{{user `disk_size`}}'
-# floppy_dirs: [](string)
-# floppy_files: [](string)
+  #floppy_dirs: [](string)
+  #floppy_files: [](string)
   headless: '{{user `headless`}}'
   http_directory: '{{user `http_directory`}}'
   http_port_max: '{{user `http_port_max`}}'
   http_port_min: '{{user `http_port_min`}}'
   iso_checksum: '{{user `iso_checksum`}}'
-  iso_checksum_type: '{{user `iso_checksum_type`}}'
-  iso_checksum_url: '{{user `iso_checksum_url`}}'
   iso_target_extension: iso
   iso_target_path: '{{user `packer_cache_dir`}}/{{user `iso_file`}}'
   iso_urls:
@@ -42,42 +40,54 @@ _anchors:
   - '{{user `iso_path_external`}}/{{user `iso_file`}}'
   memory: '{{user `memory`}}'
   output_directory: '{{user `output_directory`}}'
-  shutdown_command: echo '{{user `ssh_password`}}' | sudo -E -S poweroff
+  shutdown_command: echo '{{user `init_password`}}' | sudo -E -S poweroff
   shutdown_timeout: '{{user `shutdown_timeout`}}'
-  vm_name: '{{user `vm_name`}}'
+  vm_name: '{{user `vm_name`}}-{{isotime "2006-01-02-15-04-05"}}'
 - &communicator_ssh_options
   ssh_agent_auth: '{{user `ssh_agent_auth`}}'
-# ssh_bastion_agent_auth: false
-# ssh_bastion_host: (string)
-# ssh_bastion_password: (string)
-# ssh_bastion_port: '1'
-# ssh_bastion_private_key_file: (string)
-# ssh_bastion_username: (string)
+  #ssh_bastion_agent_auth: false
+  #ssh_bastion_host: (string)
+  #ssh_bastion_password: (string)
+  #ssh_bastion_port: '1'
+  #ssh_bastion_private_key_file: (string)
+  #ssh_bastion_username: (string)
   ssh_disable_agent_forwarding: '{{user `ssh_disable_agent_forwarding`}}'
   ssh_file_transfer_method: '{{user `ssh_file_transfer_method`}}'
   ssh_handshake_attempts: '{{user `ssh_handshake_attempts`}}'
-# ssh_host: (string)
+  #ssh_host: (string)
   ssh_keep_alive_interval: '{{user `ssh_keep_alive_interval`}}'
-  ssh_password: '{{user `ssh_password`}}'
+  ssh_password: '{{user `init_password`}}'
   ssh_port: '{{user `ssh_port`}}'
-# ssh_private_key_file: (string)
-# ssh_proxy_host: (string)
-# ssh_proxy_password: (string)
-# ssh_proxy_port: '1080'
-# ssh_proxy_username: (string)
+  #ssh_private_key_file: (string)
+  #ssh_proxy_host: (string)
+  #ssh_proxy_password: (string)
+  #ssh_proxy_port: '1080'
+  #ssh_proxy_username: (string)
   ssh_pty: '{{user `ssh_pty`}}'
-# ssh_read_write_timeout: (string)
+  #ssh_read_write_timeout: (string)
   ssh_timeout: '{{user `ssh_timeout`}}'
-  ssh_username: '{{user `ssh_username`}}'
-- &provisioner_shell_options
+  ssh_username: '{{user `init_username`}}'
+- &provisioner_root_shell_options
   binary: false
-# environment_vars: [](string)
-  execute_command: echo '{{user `ssh_password`}}' | {{.Vars}} sudo -E -S '{{.Path}}'
+  #environment_vars: [](string)
+  execute_command: echo '{{user `init_password`}}' | {{.Vars}} sudo -E -S '{{.Path}}'
   expect_disconnect: true
   inline_shebang: /bin/sh -e
-# remote_file: script_nnn.sh
-# remote_folder: /tmp
-# remote_path: /tmp/script_nnn.sh
+  #remote_file: script_nnn.sh
+  #remote_folder: /tmp
+  #remote_path: /tmp/script_nnn.sh
+  skip_clean: false
+  start_retry_timeout: '{{user `start_retry_timeout`}}'
+  type: shell
+- &provisioner_shell_options
+  binary: false
+  #environment_vars: [](string)
+  #execute_command: echo '{{user `init_password`}}' | {{.Vars}} sudo -E -S '{{.Path}}'
+  expect_disconnect: true
+  inline_shebang: /bin/sh -e
+  #remote_file: script_nnn.sh
+  #remote_folder: /tmp
+  #remote_path: /tmp/script_nnn.sh
   skip_clean: false
   start_retry_timeout: '{{user `start_retry_timeout`}}'
   type: shell
@@ -93,12 +103,12 @@ builders:
 #              \ V /| | |  | |_| |_| | (_| | | |_) | (_) >  <_____| \__ \ (_) |
 #               \_/ |_|_|   \__|\__,_|\__,_|_|_.__/ \___/_/\_\    |_|___/\___/
 - <<: [*builder_common_options, *communicator_ssh_options]
-# export_opts: [](string)
+  #export_opts: [](string)
   format: ova
   guest_additions_mode: disable
-# guest_additions_path: (string)
-# guest_additions_sha256: (string)
-# guest_additions_url: (string)
+  #guest_additions_path: (string)
+  #guest_additions_sha256: (string)
+  #guest_additions_url: (string)
   guest_os_type: '{{user `guest_os_type`}}'
   hard_drive_discard: false
   hard_drive_interface: sata
@@ -127,7 +137,7 @@ builders:
       {{- else -}}
       off
       {{- end}}
-# vboxmanage_post: [][](string)
+  #vboxmanage_post: [][](string)
   virtualbox_version_file: '/tmp/.vbox_version'
   vrdp_bind_address: '{{user `vnc_vrdp_bind_address`}}'
   vrdp_port_max: '{{user `vnc_vrdp_port_max`}}'
@@ -145,6 +155,8 @@ builders:
   disk_image: false
   disk_interface: virtio-scsi
   format: raw
+  host_port_max: '{{user `ssh_host_port_max`}}'
+  host_port_min: '{{user `ssh_host_port_min`}}'
   iso_skip_cache: false
   machine_type: pc
   name: qemu
@@ -154,13 +166,12 @@ builders:
   - - -bios
     - OVMF.fd
   skip_compaction: true
-  ssh_host_port_max: '{{user `ssh_host_port_max`}}'
-  ssh_host_port_min: '{{user `ssh_host_port_min`}}'
   type: qemu
   use_default_display: false
   vnc_bind_address: '{{user `vnc_vrdp_bind_address`}}'
   vnc_port_max: '{{user `vnc_vrdp_port_max`}}'
   vnc_port_min: '{{user `vnc_vrdp_port_min`}}'
+#
 description: '{{user `description`}}'
 min_packer_version: 1.5.6
 #                  _
@@ -171,7 +182,7 @@ min_packer_version: 1.5.6
 # |_|                      |_|
 post-processors:
 - compression_level: 6
-# include: [](string)
+  #include: [](string)
   keep_input_artifact: true
   only:
   - vbox
@@ -187,7 +198,7 @@ post-processors:
   output: '{{user `output_directory`}}/{{user `vm_name`}}.raw.gz'
   type: compress
 - inline_shebang: /bin/sh -e
-# environment_vars: [](string)
+  #environment_vars: [](string)
   execute_command: chmod +x "{{.Script}}"; {{.Vars}} "{{.Script}}"
   inline:
   - echo '---' > {{user `output_directory`}}/{{user `vm_name`}}.yaml
@@ -196,13 +207,12 @@ post-processors:
   - echo 'versions:' >> {{user `output_directory`}}/{{user `vm_name`}}.yaml
   - 'echo ''- version: {{user `version`}}'' >> {{user `output_directory`}}/{{user `vm_name`}}.yaml'
   - echo '  providers:' >> {{user `output_directory`}}/{{user `vm_name`}}.yaml
-  - 'echo ''  - name: XXXPROVIDER'' >> {{user `output_directory`}}/{{user `vm_name`}}.yaml'
+  - '[ vbox = ''{{build_name}}'' ] && echo ''  - name: virtualbox'' >> {{user `output_directory`}}/{{user `vm_name`}}.yaml || true'
+  - '[ qemu = ''{{build_name}}'' ] && echo ''  - name: libvirt'' >> {{user `output_directory`}}/{{user `vm_name`}}.yaml || true'
   - 'echo ''    url: http://myserver/vm/{{user `vm_name`}}/{{user `vm_name`}}-{{user `version`}}-''{{build_name}}''.box''
     >> {{user `output_directory`}}/{{user `vm_name`}}.yaml'
   - 'echo ''    checksum_type: sha256'' >> {{user `output_directory`}}/{{user `vm_name`}}.yaml'
   - 'echo ''    checksum: deadbeef'' >> {{user `output_directory`}}/{{user `vm_name`}}.yaml'
-  - if [ 'vbox' = '{{build_name}}' ]; then sed -i '' 's/XXXPROVIDER/virtualbox/' '{{user `output_directory`}}/{{user `vm_name`}}.yaml'; fi
-  - if [ 'qemu' = '{{build_name}}' ]; then sed -i '' 's/XXXPROVIDER/libvirt/' '{{user `output_directory`}}/{{user `vm_name`}}.yaml'; fi
   only:
   - vbox
   - qemu
@@ -214,21 +224,21 @@ post-processors:
 # | .__/|_|  \___/ \_/ |_|___/_|\___/|_| |_|\___|_|  |___/
 # |_|
 provisioners:
-- <<: *provisioner_shell_options
+- <<: *provisioner_root_shell_options
   inline:
   - echo 'FS0:\EFI\ubuntu\grubx64.efi' > /boot/efi/startup.nsh
   only:
   - vbox
   - qemu
-- <<: *provisioner_shell_options
+- <<: *provisioner_root_shell_options
   inline:
-  - 'echo ''{{user `ssh_username`}} ALL=(ALL) NOPASSWD: ALL'' > /etc/sudoers.d/99{{user
-    `ssh_username`}}'
-  - chmod 0440 /etc/sudoers.d/99{{user `ssh_username`}}
+  - 'echo ''{{user `init_username`}} ALL=(ALL) NOPASSWD: ALL'' > /etc/sudoers.d/99{{user
+    `init_username`}}'
+  - chmod 0440 /etc/sudoers.d/99{{user `init_username`}}
   only:
   - vbox
   - qemu
-- <<: *provisioner_shell_options
+- <<: *provisioner_root_shell_options
   inline:
   - apt-get update
   - apt-get --yes dist-upgrade
@@ -236,7 +246,7 @@ provisioners:
   only:
   - vbox
   - qemu
-- <<: *provisioner_shell_options
+- <<: *provisioner_root_shell_options
   inline:
   - dd if=/dev/zero of=/ZEROFILL bs=16M || true
   - rm /ZEROFILL
@@ -263,9 +273,11 @@ variables:
   http_directory: '.'
   http_port_max: '9000'
   http_port_min: '8000'
+  init_fullname: Ghost Writer
+  init_password: 1ma63b0rk3d
+  init_username: ghost
+  # See https://www.packer.io/docs/builders/virtualbox/iso for supported formats
   iso_checksum: e2ecdace33c939527cbc9e8d23576381c493b071107207d2040af72595f8990b
-  iso_checksum_type: sha256
-# iso_checksum_url: http://cdimage.ubuntu.com/releases/18.04/release/SHA256SUMS
   iso_file: ubuntu-18.04.4-server-amd64.iso
   iso_path_external: http://cdimage.ubuntu.com/releases/18.04/release
   iso_path_internal: http://myserver:8080/ubuntu
@@ -275,28 +287,29 @@ variables:
   locale: en_CA.UTF-8
   memory: '512'
   min_vagrant_version: 2.2.9
-  output_directory: 'build/{{isotime "2006-01-02-15-04-05"}}'
+  output_directory: 'build/{{user `vm_name`}}-{{isotime "2006-01-02-15-04-05"}}'
   packer_cache_dir: '{{env `PACKER_CACHE_DIR`}}'
-  preseed_file: template/ubuntu/18.04_bionic/base-uefi.preseed
+  # Files we want processed through Jinja
+  pb_templates:
+  - base-uefi.preseed
+  - base.vagrant
+  preseed_file: '{{user `pb_template_dir`}}/base-uefi.preseed'
   qemu_binary: qemu-system-x86_64
   shutdown_timeout: 5m
   ssh_agent_auth: 'false'
   ssh_disable_agent_forwarding: 'false'
   ssh_file_transfer_method: scp
-  ssh_fullname: Ghost Writer
   ssh_handshake_attempts: '10'
   ssh_host_port_max: '4444'
   ssh_host_port_min: '2222'
   ssh_keep_alive_interval: 5s
-  ssh_password: 1ma63b0rk3d
   ssh_port: '22'
   ssh_pty: 'false'
   ssh_timeout: 60m
-  ssh_username: ghost
   start_retry_timeout: 5m
   system_clock_in_utc: 'true'
   timezone: UTC
-  vagrantfile_template: template/ubuntu/18.04_bionic/base-uefi.vagrant
+  vagrantfile_template: '{{user `pb_template_dir`}}/base.vagrant'
   version: 0.0.0
   vm_name: base-uefi-bionic
   vnc_vrdp_bind_address: 127.0.0.1
