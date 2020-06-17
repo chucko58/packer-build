@@ -116,6 +116,8 @@ builders:
   post_shutdown_delay: 0s
   sata_port_count: '1'
   skip_export: false
+  host_port_max: '{{user `host_port_max`}}'
+  host_port_min: '{{user `host_port_min`}}'
   ssh_skip_nat_mapping: false
   type: virtualbox-iso
   vboxmanage:
@@ -155,13 +157,15 @@ builders:
   qemu_binary: '{{user `qemu_binary`}}'
 # qemuargs: [][](string)
   skip_compaction: true
+  host_port_max: '{{user `host_port_max`}}'
+  host_port_min: '{{user `host_port_min`}}'
   type: qemu
   use_default_display: false
   vnc_bind_address: '{{user `vnc_vrdp_bind_address`}}'
   vnc_port_max: '{{user `vnc_vrdp_port_max`}}'
   vnc_port_min: '{{user `vnc_vrdp_port_min`}}'
 description: '{{user `description`}}'
-min_packer_version: 1.5.6
+min_packer_version: 1.6.0
 #                  _
 #  _ __   ___  ___| |_      _ __  _ __ ___   ___ ___  ___ ___  ___  _ __ ___
 # | '_ \ / _ \/ __| __|____| '_ \| '__/ _ \ / __/ _ \/ __/ __|/ _ \| '__/ __|
@@ -264,6 +268,7 @@ variables:
   http_port_max: '9000'
   http_port_min: '8000'
   iso_checksum: sha256:16afb1375372c57471ea5e29803a89a5a6bd1f6aabea2e5e34ac1ab7eb9786ac
+# iso_checksum: http://releases.ubuntu.com/16.04/SHA256SUMS
   iso_file: ubuntu-16.04.6-server-amd64.iso
   iso_path_external: http://releases.ubuntu.com/16.04
   iso_path_internal: http://myserver:8080/ubuntu
@@ -286,6 +291,8 @@ variables:
   ssh_file_transfer_method: scp
   ssh_fullname: Ghost Writer
   ssh_handshake_attempts: '10'
+  host_port_max: '4444'
+  host_port_min: '2222'
   ssh_keep_alive_interval: 5s
   ssh_password: 1ma63b0rk3d
   ssh_port: '22'

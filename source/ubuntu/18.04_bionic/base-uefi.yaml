@@ -119,8 +119,8 @@ builders:
   post_shutdown_delay: 0s
   sata_port_count: '1'
   skip_export: false
-  ssh_host_port_max: '{{user `ssh_host_port_max`}}'
-  ssh_host_port_min: '{{user `ssh_host_port_min`}}'
+  host_port_max: '{{user `host_port_max`}}'
+  host_port_min: '{{user `host_port_min`}}'
   ssh_skip_nat_mapping: false
   type: virtualbox-iso
   vboxmanage:
@@ -166,6 +166,8 @@ builders:
   - - -bios
     - OVMF.fd
   skip_compaction: true
+  host_port_max: '{{user `host_port_max`}}'
+  host_port_min: '{{user `host_port_min`}}'
   type: qemu
   use_default_display: false
   vnc_bind_address: '{{user `vnc_vrdp_bind_address`}}'
@@ -173,7 +175,7 @@ builders:
   vnc_port_min: '{{user `vnc_vrdp_port_min`}}'
 #
 description: '{{user `description`}}'
-min_packer_version: 1.5.6
+min_packer_version: 1.6.0
 #                  _
 #  _ __   ___  ___| |_      _ __  _ __ ___   ___ ___  ___ ___  ___  _ __ ___
 # | '_ \ / _ \/ __| __|____| '_ \| '__/ _ \ / __/ _ \/ __/ __|/ _ \| '__/ __|
@@ -273,11 +275,8 @@ variables:
   http_directory: '.'
   http_port_max: '9000'
   http_port_min: '8000'
-  init_fullname: Ghost Writer
-  init_password: 1ma63b0rk3d
-  init_username: ghost
-  # See https://www.packer.io/docs/builders/virtualbox/iso for supported formats
   iso_checksum: sha256:e2ecdace33c939527cbc9e8d23576381c493b071107207d2040af72595f8990b
+# iso_checksum: http://cdimage.ubuntu.com/releases/18.04/release/SHA256SUMS
   iso_file: ubuntu-18.04.4-server-amd64.iso
   iso_path_external: http://cdimage.ubuntu.com/releases/18.04/release
   iso_path_internal: http://myserver:8080/ubuntu
@@ -300,8 +299,8 @@ variables:
   ssh_disable_agent_forwarding: 'false'
   ssh_file_transfer_method: scp
   ssh_handshake_attempts: '10'
-  ssh_host_port_max: '4444'
-  ssh_host_port_min: '2222'
+  host_port_max: '4444'
+  host_port_min: '2222'
   ssh_keep_alive_interval: 5s
   ssh_port: '22'
   ssh_pty: 'false'

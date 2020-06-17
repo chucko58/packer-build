@@ -48,9 +48,8 @@ The VirtualBox and QEMU versions used for Linux testing are normally the
 
 * REQUIRED:  Packer_ (Packer_download_)
 
-  - 1.5.6 on Debian Buster 10.x (VirtualBox and QEMU)
-  - 1.6.0 on Ubuntu Focal 20.04 (VirtualBox)
-  - 1.6.0 on macOS 10.14.6 and 10.15.5 (VirtualBox)
+  - 1.6.0 on Debian Buster 10.x (VirtualBox and QEMU)
+  - not currently being tested on macOS but used to work fine
 
 .. _Packer:  https://www.packer.io/
 .. _Packer_download:  https://releases.hashicorp.com/packer/
