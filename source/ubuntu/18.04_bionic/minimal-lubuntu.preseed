@@ -1,0 +1,135 @@
+#
+# packer-build preseed file for minimal Lubuntu desktop image on Ubuntu Server 18.04 LTS
+#
+# Locale Setup
+d-i debian-installer/language string {{language}}
+d-i debian-installer/country string {{country}}
+d-i debian-installer/locale string {{locale}}
+d-i localechooser/supported-locales multiselect {{locale}}
+# d-i pkgsel/install-language-support boolean true
+
+# Keyboard Setup
+d-i console-setup/ask_detect boolean false
+d-i keyboard-configuration/xkb-keymap string {{keyboard}}
+
+# Simple network setup
+d-i netcfg/get_hostname string {{vm_name}}
+d-i netcfg/get_domain string
+# https://bugs.launchpad.net/ubuntu/+source/netcfg/+bug/713385
+d-i netcfg/choose_interface select auto
+# make sure you also add "interface=auto" to your boot command too
+# https://bugs.launchpad.net/ubuntu/+source/netcfg/+bug/713385
+
+# Load firmware/drivers from removable media?
+d-i hw-detect/load_firmware boolean false
+d-i hw-detect/load_media boolean false
+
+# Mirror setup
+d-i mirror/protocol select http
+d-i mirror/country string manual
+d-i mirror/http/hostname string archive.ubuntu.com
+d-i mirror/http/directory string /ubuntu
+d-i mirror/http/proxy string
+# d-i mirror/http/proxy string {{apt_cache_url}}
+
+# User Setup
+d-i passwd/root-login boolean false
+d-i passwd/user-fullname string {{init_fullname}}
+d-i passwd/username string {{init_username}}
+d-i passwd/user-password password {{init_password}}
+d-i passwd/user-password-again password {{init_password}}
+# d-i passwd/user-password-crypted password $6$w5yFawT.$d51yQ513SdzariRCjomBwO9IMtMh6.TjnRwQqTBlOMwGhyyVXlJeYC9kanFp65bpoS1tn9x7r8gLP5Dg4CtEP1
+d-i user-setup/allow-password-weak boolean true
+# Set default groups for this user
+# d-i passwd/user-default-groups string 
+# Encrypt home directory?
+d-i user-setup/encrypt-home boolean false
+
+# Clock Setup
+# set to false if making a bootable USB to run on same system as Windows
+d-i clock-setup/utc boolean {{system_clock_in_utc}}
+d-i time/zone string {{timezone}}
+# Use NTP to set clock during install?
+d-i clock-setup/ntp boolean true
+# Specify a particular server if desired (default usually fine)
+# d-i clock-setup/ntp-server string pool.ntp.org
+
+# Drive Setup
+d-i partman-auto/disk string /dev/sda
+# Choices are regular, lvm, crypto
+d-i partman-auto/method string lvm
+# Nuke any pre-existing LVM structures on the drive
+d-i partman-lvm/device_remove_lvm boolean true
+# Ditto software RAID
+d-i partman-md/device_remove_md boolean true
+# How much of the group to use: max, # of GB, %
+d-i partman-auto-lvm/guided_size string max
+d-i partman-auto-lvm/new_vg_name string primary
+# Partition recipe: atomic, home (separate /home), multi (separate /home, /var, /tmp)
+d-i partman-auto/choose_recipe select atomic
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+
+# Base system
+d-i base-installer/install-recommends boolean true
+d-i base-installer/kernel/image string linux-generic
+d-i debconf debconf/frontend select Noninteractive
+
+# Apt setup
+# Disable dialog for swapping install media
+d-i apt-setup/cdrom/set-first boolean false
+d-i apt-setup/restricted boolean true
+d-i apt-setup/universe boolean true
+d-i apt-setup/backports boolean true
+# Uncomment this if you don't want to use a network mirror
+#d-i apt-setup/use_mirror boolean false
+d-i apt-setup/services-select multiselect security, updates
+d-i apt-setup/security_host string security.ubuntu.com
+d-i apt-setup/security_path string /ubuntu
+# Support 32-bit (or don't)
+d-i apt-setup/multiarch string i386
+
+# Package Setup
+tasksel tasksel/first multiselect ubuntu-server
+
+# Additional software to install
+#
+# Bare minimum: openssh-server required for packer communicator
+# d-i pkgsel/include string openssh-server
+#
+# gcc, make, perl are required to install VirtualBox Guest Additions
+# d-i pkgsel/include string openssh-server gcc make perl
+
+# Minimal Lubuntu installation 
+d-i pkgsel/include string acpi-support anacron avahi-daemon ca-certificates desktop-file-utils gcc gnome-keyring gnome-system-tools gparted indicator-application-gtk2 ibus kerneloops language-selector-gnome libnotify-bin libsasl2-modules light-locker-settings lightdm lightdm-gtk-greeter-settings lubuntu-gtk-core lubuntu-default-session lxinput lxpanel-indicator-applet-plugin lxpolkit lxrandr make openssh-server zip
+
+# Update policy choices: none, unattended-upgrades, landscape (paid service)
+d-i pkgsel/update-policy select none
+# Upgrade after debootstrap choices: none, safe-upgrade, full-upgrade
+d-i pkgsel/upgrade select full-upgrade
+# Update package DB after install? Can take a while.
+d-i pkgsel/updatedb boolean true
+
+# Grub bootloader
+d-i grub-installer/only_debian boolean true
+d-i grub-installer bootdev string default
+
+# Custom commands
+#
+# preseed/late_command is run just before the install finishes, but when there is
+# still a usable /target directory. You can chroot to /target and use it
+# directly, or use the apt-install and in-target commands to easily install
+# packages and run commands in the target system.
+#
+# Could be an option to replace early provisioners 
+#
+# d-i preseed/late_command string apt-install zsh; in-target chsh -s /bin/zsh
+
+# Final Setup
+d-i finish-install/reboot_in_progress note
+# Eject installer
+d-i cdrom-detect/eject boolean false
