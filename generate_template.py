@@ -225,7 +225,8 @@ def build_templates(ctx, source_dir, os_name, os_version, os_template, var_file)
 
     # Render the destination Packer JSON template
     # First remove the PB_TEMPLATES_KEY variable as Packer only wants strings
-    del config_dict['variables'][PB_TEMPLATES_KEY]
+    if PB_TEMPLATES_KEY in config_dict['variables']:
+        del config_dict['variables'][PB_TEMPLATES_KEY]
     output_json_path = path.join(output_dir, os_template + '.json')
     log(ctx, 'Writing template: {}'.format(output_json_path))
     with copen(output_json_path, 'w', 'utf-8') as f:
