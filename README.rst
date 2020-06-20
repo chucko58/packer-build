@@ -50,7 +50,7 @@ The VirtualBox and QEMU versions used for Linux testing are normally the
 
   - 1.5.6 on Debian Buster 10.x (VirtualBox and QEMU)
   - 1.6.0 on Ubuntu Focal 20.04 (VirtualBox)
-  - 1.5.6 and 1.6.0 on macOS 10.14.6 (VirtualBox)
+  - 1.6.0 on macOS 10.14.6 and 10.15.5 (VirtualBox)
 
 .. _Packer:  https://www.packer.io/
 .. _Packer_download:  https://releases.hashicorp.com/packer/
@@ -105,7 +105,6 @@ TODO Items
 * [DRY phase3] Wait until HCL2 stops sucking and convert everything from YAML to HCL2
 * [preseed debian] Find out if partman-crypto will allow passphrase-crypted
 * [preseed debian] Skip past "Force UEFI Install" installer prompt
-* [yaml all] Update YAML files to Packer 1.6.0 format
 
 Using Packer Templates
 ----------------------
