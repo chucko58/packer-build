@@ -314,7 +314,7 @@ variables:
   packer_cache_dir: '{{env `PACKER_CACHE_DIR`}}'
   pb_templates:
   - base-i386.preseed
-  - base.vagrant
+  - base-i386.vagrant
   preseed_file: '{{user `pb_template_dir`}}/base-i386.preseed'
   qemu_binary: qemu-system-x86
   shutdown_timeout: 5m
@@ -332,7 +332,7 @@ variables:
   start_retry_timeout: 5m
   system_clock_in_utc: 'true'
   timezone: UTC
-  vagrantfile_template: '{{user `pb_template_dir`}}/base.vagrant'
+  vagrantfile_template: '{{user `pb_template_dir`}}/base-i386.vagrant'
   version: 0.0.0
   vm_name: base-i386-buster
   vnc_vrdp_bind_address: 127.0.0.1

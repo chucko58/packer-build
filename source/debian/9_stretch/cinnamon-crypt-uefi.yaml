@@ -309,7 +309,7 @@ variables:
   start_retry_timeout: 5m
   system_clock_in_utc: 'true'
   timezone: UTC
-  vagrantfile_template: '{{user `pb_template_dir`}}/base.vagrant'
+  vagrantfile_template: '{{user `pb_template_dir`}}/cinnamon-crypt-uefi.vagrant'
   version: 0.0.0
   vm_name: cinnamon-crypt-uefi-stretch
   vnc_vrdp_bind_address: 127.0.0.1
